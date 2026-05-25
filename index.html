@@ -1670,6 +1670,7 @@ let pendingCardClick = null;
 let longPressTimer = null;
 let longPressFired = false;
 let swipeStartX = null;
+let swipeStartY = null;
 
 function getCardKey(cardInner) {
   return cardInner.dataset.dim || cardInner.dataset.type;
@@ -1774,7 +1775,12 @@ function handleCardClick(cardInner) {
 }
 
 // Mobile long-press → toggle lock (same as desktop double-click)
+// Swipe → switch modules (works anywhere on home page, including on cards)
 document.addEventListener('touchstart', e => {
+  const touch = e.touches[0];
+  swipeStartX = touch.clientX;
+  swipeStartY = touch.clientY;
+
   const cardInner = e.target.closest('.card-inner');
   if (cardInner) {
     const inM1 = cardInner.closest('#m1Cards');
@@ -1783,42 +1789,40 @@ document.addEventListener('touchstart', e => {
       longPressFired = false;
       longPressTimer = setTimeout(() => {
         longPressFired = true;
+        swipeStartX = null; // cancel swipe
         const module = inM1 ? 1 : 2;
         const key = getCardKey(cardInner);
         if (key) handleCardDoubleClick(module, key);
       }, 600);
-      return;
     }
   }
-  // Swipe tracking (only on home page, not on cards)
-  if (state.page === 'home' && !e.target.closest('button') && !e.target.closest('input')) {
-    swipeStartX = e.touches[0].clientX;
+}, { passive: true });
+
+document.addEventListener('touchmove', e => {
+  clearTimeout(longPressTimer);
+  // Cancel swipe if significant vertical movement (scrolling)
+  if (swipeStartY !== null && Math.abs(e.touches[0].clientY - swipeStartY) > 25) {
+    swipeStartX = null;
   }
 }, { passive: true });
 
 document.addEventListener('touchend', e => {
   clearTimeout(longPressTimer);
-  // Detect swipe
-  if (swipeStartX !== null && state.page === 'home') {
-    const dx = e.changedTouches[0].clientX - swipeStartX;
-    if (Math.abs(dx) > 60) {
-      const newModule = dx < 0 ? 2 : 1;
-      if (newModule !== state.module) {
-        state.module = newModule;
-        if (newModule === 1) { state.m1Results = {}; state.m1Locks = {}; state.m1Flipped = {}; }
-        else { state.m2Results = {}; state.m2Locks = {}; state.m2Flipped = {}; }
-        renderHome();
-      }
+  if (longPressFired) { longPressFired = false; swipeStartX = null; return; }
+  if (swipeStartX === null) return;
+
+  const dx = e.changedTouches[0].clientX - swipeStartX;
+  if (Math.abs(dx) > 50 && state.page === 'home') {
+    const newModule = dx < 0 ? 2 : 1;
+    if (newModule !== state.module) {
+      state.module = newModule;
+      if (newModule === 1) { state.m1Results = {}; state.m1Locks = {}; state.m1Flipped = {}; }
+      else { state.m2Results = {}; state.m2Locks = {}; state.m2Flipped = {}; }
+      renderHome();
     }
-    swipeStartX = null;
   }
-});
-document.addEventListener('touchmove', e => {
-  clearTimeout(longPressTimer);
-  // Cancel swipe if moved vertically
-  if (swipeStartX !== null && Math.abs(e.touches[0].clientY - (e.touches[0].clientY || 0)) > 30) {
-    swipeStartX = null;
-  }
+  swipeStartX = null;
+  swipeStartY = null;
 });
 
 // ============================================================
