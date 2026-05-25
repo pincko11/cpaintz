@@ -182,8 +182,10 @@ nav .sound-btn:hover { color: #F5F0E8; }
   max-width: 900px;
   margin: 0 auto;
 }
+#m2Cards { grid-template-columns: repeat(2, 1fr); max-width: 440px; }
 @media (max-width: 640px) {
   .card-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 10px; }
+  #m2Cards { grid-template-columns: repeat(2, 1fr); max-width: 300px; }
   nav .nav-links button { padding: 4px 8px; font-size: 12px; }
   .module-tabs button { padding: 8px 20px; font-size: 14px; }
 }
@@ -430,7 +432,6 @@ nav .sound-btn:hover { color: #F5F0E8; }
     <button data-page="history">历史记录</button>
     <button data-page="settings">设置</button>
   </div>
-  <button class="sound-btn" id="soundToggle" title="音效开关">🔊</button>
 </nav>
 
 <!-- ========== MODULE TABS ========== -->
@@ -717,7 +718,6 @@ function renderNav() {
     b.classList.toggle('active', b.dataset.page === state.page);
   });
   document.getElementById('moduleTabs').style.display = state.page === 'home' ? 'flex' : 'none';
-  document.getElementById('soundToggle').textContent = state.soundEnabled ? '🔊' : '🔇';
   document.getElementById('settingSound').checked = state.soundEnabled;
 }
 
@@ -1388,15 +1388,6 @@ document.addEventListener('click', e => {
     return;
   }
 
-  // Sound toggle (nav)
-  if (e.target.closest('#soundToggle')) {
-    state.soundEnabled = !state.soundEnabled;
-    saveState();
-    renderNav();
-    showToast(state.soundEnabled ? '音效已开启' : '音效已静音');
-    return;
-  }
-
   // Module tabs
   const modBtn = e.target.closest('.module-tabs button');
   if (modBtn) {
@@ -1637,6 +1628,7 @@ let cardClickTimer = null;
 let pendingCardClick = null;
 let longPressTimer = null;
 let longPressFired = false;
+let swipeStartX = null;
 
 function getCardKey(cardInner) {
   return cardInner.dataset.dim || cardInner.dataset.type;
@@ -1743,25 +1735,49 @@ function handleCardClick(cardInner) {
 // Mobile long-press → toggle lock (same as desktop double-click)
 document.addEventListener('touchstart', e => {
   const cardInner = e.target.closest('.card-inner');
-  if (!cardInner) return;
-  const inM1 = cardInner.closest('#m1Cards');
-  const inM2 = cardInner.closest('#m2Cards');
-  if (!inM1 && !inM2) return;
-
-  longPressFired = false;
-  longPressTimer = setTimeout(() => {
-    longPressFired = true;
-    const module = cardInner.closest('#m1Cards') ? 1 : 2;
-    const key = getCardKey(cardInner);
-    if (key) handleCardDoubleClick(module, key);
-  }, 600);
+  if (cardInner) {
+    const inM1 = cardInner.closest('#m1Cards');
+    const inM2 = cardInner.closest('#m2Cards');
+    if (inM1 || inM2) {
+      longPressFired = false;
+      longPressTimer = setTimeout(() => {
+        longPressFired = true;
+        const module = inM1 ? 1 : 2;
+        const key = getCardKey(cardInner);
+        if (key) handleCardDoubleClick(module, key);
+      }, 600);
+      return;
+    }
+  }
+  // Swipe tracking (only on home page, not on cards)
+  if (state.page === 'home' && !e.target.closest('button') && !e.target.closest('input')) {
+    swipeStartX = e.touches[0].clientX;
+  }
 }, { passive: true });
 
-document.addEventListener('touchend', () => {
+document.addEventListener('touchend', e => {
   clearTimeout(longPressTimer);
+  // Detect swipe
+  if (swipeStartX !== null && state.page === 'home') {
+    const dx = e.changedTouches[0].clientX - swipeStartX;
+    if (Math.abs(dx) > 60) {
+      const newModule = dx < 0 ? 2 : 1;
+      if (newModule !== state.module) {
+        state.module = newModule;
+        if (newModule === 1) { state.m1Results = {}; state.m1Locks = {}; state.m1Flipped = {}; }
+        else { state.m2Results = {}; state.m2Locks = {}; state.m2Flipped = {}; }
+        renderHome();
+      }
+    }
+    swipeStartX = null;
+  }
 });
-document.addEventListener('touchmove', () => {
+document.addEventListener('touchmove', e => {
   clearTimeout(longPressTimer);
+  // Cancel swipe if moved vertically
+  if (swipeStartX !== null && Math.abs(e.touches[0].clientY - (e.touches[0].clientY || 0)) > 30) {
+    swipeStartX = null;
+  }
 });
 
 // ============================================================
