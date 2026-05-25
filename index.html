@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a1a1a">
+<meta name="description" content="个人二创画师灵感随机工具">
+<link rel="manifest" href="manifest.json">
+<title>Cpaintz</title>
+<style>
+/* ========== RESET & BASE ========== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  background: #F5F0E8;
+  color: #1a1a1a;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ========== NAVIGATION ========== */
+nav {
+  background: #1a1a1a;
+  color: #F5F0E8;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+nav .brand {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #C9A94E;
+}
+nav .brand-c {
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: 27px;
+  font-weight: 900;
+  font-style: italic;
+}
+nav .brand-paintz {
+  font-family: "Brush Script MT", "Georgia", "Times New Roman", cursive;
+  font-size: 19px;
+  font-weight: 300;
+  font-style: italic;
+  letter-spacing: 0.5px;
+}
+nav .nav-links {
+  display: flex;
+  gap: 4px;
+}
+nav .nav-links button, nav .sound-btn {
+  background: none;
+  border: 1px solid transparent;
+  color: #AA9F8E;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+nav .nav-links button.active { color: #C9A94E; border-color: #C9A94E; }
+nav .nav-links button:hover { color: #F5F0E8; }
+nav .sound-btn {
+  font-size: 20px;
+  padding: 4px 8px;
+  color: #AA9F8E;
+}
+nav .sound-btn:hover { color: #F5F0E8; }
+
+/* ========== MODULE TABS ========== */
+.module-tabs {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  padding: 16px;
+  flex-shrink: 0;
+}
+.module-tabs button {
+  padding: 10px 32px;
+  border-radius: 24px;
+  border: 2px solid #1a1a1a;
+  background: transparent;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+.module-tabs button.m1 { color: #8B6914; border-color: #8B6914; }
+.module-tabs button.m1.active { background: #8B6914; color: #F5F0E8; }
+.module-tabs button.m2 { color: #6B1D2F; border-color: #6B1D2F; }
+.module-tabs button.m2.active { background: #6B1D2F; color: #F5F0E8; }
+
+/* ========== PAGES ========== */
+.page { display: none; flex: 1; overflow-y: auto; padding-bottom: 32px; }
+.page.visible { display: block; }
+
+/* ========== DIMENSION TAGS (Module 1) ========== */
+.dim-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 16px 16px;
+  justify-content: center;
+}
+.dim-tag {
+  padding: 6px 14px;
+  border-radius: 16px;
+  border: 2px solid #C9A94E;
+  background: transparent;
+  color: #8B6914;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.dim-tag.selected { background: #C9A94E; color: #1a1a1a; }
+
+/* ========== EMOTION SLIDER (Module 2) ========== */
+.emotion-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px 16px;
+  justify-content: center;
+}
+.emotion-bar label { font-size: 13px; color: #6B1D2F; white-space: nowrap; }
+.emotion-bar input[type="range"] {
+  -webkit-appearance: none;
+  width: 200px;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to right, #F5E6D3, #8B2E4A);
+  outline: none;
+}
+.emotion-bar input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: #8B2E4A;
+  cursor: pointer;
+  border: 2px solid #F5F0E8;
+}
+
+/* ========== SERIES FILTER (Module 2) ========== */
+.series-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 16px 16px;
+  justify-content: center;
+}
+.series-tag {
+  padding: 4px 12px;
+  border-radius: 12px;
+  border: 1.5px solid #6B1D2F;
+  background: transparent;
+  color: #6B1D2F;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.series-tag.selected { background: #6B1D2F; color: #F5F0E8; }
+
+/* ========== CARD GRID ========== */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  padding: 0 16px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+@media (max-width: 640px) {
+  .card-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 10px; }
+  nav .nav-links button { padding: 4px 8px; font-size: 12px; }
+  .module-tabs button { padding: 8px 20px; font-size: 14px; }
+}
+
+/* ========== CARD FLIP ========== */
+.card-wrapper { perspective: 800px; }
+.card-inner {
+  position: relative;
+  width: 100%;
+  padding-bottom: 150%; /* 2:3 ratio */
+  transform-style: preserve-3d;
+  transition: transform 0.6s ease;
+  cursor: pointer;
+}
+.card-inner.flipped { transform: rotateY(180deg); }
+.m1-card .card-inner.locked { box-shadow: 0 0 0 5px #C9A94E; border-radius: 8px; }
+.m2-card .card-inner.locked { box-shadow: 0 0 0 5px #8B2E4A; border-radius: 8px; }
+
+.card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.card-back-img {
+  width: 100%; height: 100%; object-fit: cover; border-radius: 8px;
+}
+.card-front {
+  transform: rotateY(180deg);
+  background: #1a1a1a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+.card-front .card-tag {
+  position: absolute;
+  top: 10px; left: 10px;
+  background: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.7);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+.card-front .card-word {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.4;
+  word-break: break-all;
+}
+@media (max-width: 640px) {
+  .card-front .card-word { font-size: 16px; }
+}
+
+/* Module 1 colors */
+.m1-card .card-front .card-word { color: #C9A94E; }
+/* Module 2 colors */
+.m2-card .card-front .card-word { color: #E8D5D0; }
+
+/* ========== BUTTONS ========== */
+.btn-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  padding: 20px 16px;
+  flex-wrap: wrap;
+}
+.btn {
+  padding: 10px 24px;
+  border-radius: 20px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.btn-primary { background: #8B6914; color: #F5F0E8; }
+.btn-primary:active { background: #6B4F0E; }
+.btn-secondary { background: #6B1D2F; color: #F5F0E8; }
+.btn-secondary:active { background: #4D1522; }
+.btn-outline { background: transparent; border: 2px solid #1a1a1a; color: #1a1a1a; }
+.btn-outline:active { background: rgba(0,0,0,0.05); }
+.btn-danger { background: transparent; border: 2px solid #C0392B; color: #C0392B; }
+.btn-danger:active { background: rgba(192,57,43,0.1); }
+
+/* ========== FAVORITES ========== */
+.fav-groups { display: flex; flex-direction: column; gap: 24px; padding: 16px; max-width: 800px; margin: 0 auto; }
+.fav-group { border-radius: 12px; background: rgba(255,255,255,0.5); padding: 16px; }
+.fav-group h3 { font-size: 16px; margin-bottom: 12px; color: #5C4B3A; }
+.fav-item {
+  background: #FFF;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  cursor: grab;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: box-shadow 0.2s, opacity 0.2s;
+}
+.fav-item:active { cursor: grabbing; }
+.fav-item.dragging { opacity: 0.4; }
+.drag-insert-line {
+  height: 3px; background: #C9A94E; border-radius: 2px;
+  margin: 2px 0; animation: pulse 0.6s ease infinite;
+}
+.fav-item .fav-info { flex: 1; }
+.fav-item .fav-words { font-size: 13px; color: #1a1a1a; }
+.fav-item .fav-meta { font-size: 11px; color: #999; margin-top: 4px; }
+.fav-item .fav-notes { font-size: 12px; color: #666; font-style: italic; margin-top: 4px; }
+.fav-item .fav-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.fav-item .fav-actions button {
+  background: none; border: none; font-size: 16px; cursor: pointer; padding: 4px;
+}
+.fav-move-menu {
+  position: absolute; right: 8px; top: 36px;
+  background: #FFF; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  z-index: 50; overflow: hidden; min-width: 130px;
+}
+.fav-move-menu button {
+  display: block; width: 100%; padding: 10px 16px; border: none;
+  background: none; font-size: 13px; cursor: pointer; text-align: left;
+  white-space: nowrap;
+}
+.fav-move-menu button:hover { background: #F5F0E8; }
+.fav-move-menu button.current { color: #BBB; pointer-events: none; }
+.fav-item { position: relative; }
+.fav-group .drop-hint {
+  text-align: center; color: #AAA; font-size: 12px; padding: 12px;
+  border: 2px dashed #DDD; border-radius: 8px;
+}
+
+/* ========== HISTORY ========== */
+.history-list { padding: 16px; max-width: 800px; margin: 0 auto; }
+.history-item {
+  background: #FFF;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.history-item .hist-info { flex: 1; cursor: pointer; }
+.history-item .hist-words { font-size: 13px; }
+.history-item .hist-meta { font-size: 11px; color: #999; margin-top: 4px; }
+
+/* ========== SETTINGS ========== */
+.settings-page { padding: 24px 16px; max-width: 600px; margin: 0 auto; }
+.setting-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 0; border-bottom: 1px solid #E0D8CC;
+}
+.setting-item label { font-size: 15px; }
+.setting-item input[type="checkbox"] {
+  width: 44px; height: 26px; -webkit-appearance: none;
+  background: #CCC; border-radius: 13px; position: relative; cursor: pointer;
+  transition: background 0.3s;
+}
+.setting-item input[type="checkbox"]::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px; border-radius: 50%; background: #FFF;
+  transition: left 0.3s;
+}
+.setting-item input[type="checkbox"]:checked { background: #8B6914; }
+.setting-item input[type="checkbox"]:checked::after { left: 21px; }
+.copyright {
+  margin-top: 32px; padding: 16px; font-size: 12px; color: #999;
+  text-align: center; line-height: 1.8;
+}
+
+/* ========== CUSTOM DICT MODAL ========== */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  z-index: 200; align-items: center; justify-content: center;
+}
+.modal-overlay.visible { display: flex; }
+.modal {
+  background: #F5F0E8; border-radius: 16px; padding: 24px;
+  max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;
+}
+.modal h2 { font-size: 20px; margin-bottom: 16px; }
+.modal textarea {
+  width: 100%; height: 120px; border: 2px solid #DDD; border-radius: 8px;
+  padding: 12px; font-size: 14px; resize: vertical; font-family: inherit;
+}
+.modal .dim-select { margin: 12px 0; }
+.modal .dim-select select {
+  padding: 8px 12px; border-radius: 8px; border: 2px solid #DDD; font-size: 14px; width: 100%;
+}
+.modal .parsed-words {
+  display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0;
+}
+.modal .parsed-word {
+  display: flex; align-items: center; gap: 4px;
+  background: #E8E0D0; padding: 4px 10px; border-radius: 12px; font-size: 13px;
+}
+.modal .parsed-word button {
+  background: none; border: none; cursor: pointer; font-size: 14px; color: #999;
+}
+.modal .parsed-word.custom { background: #D4C8A0; }
+.modal .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+
+/* ========== SHARE MODAL ========== */
+.share-modal .share-canvas-wrap { text-align: center; margin: 16px 0; }
+.share-modal canvas { max-width: 100%; border-radius: 8px; }
+
+/* ========== ANIMATIONS ========== */
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes redrawPulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.4); }
+}
+.card-inner.redrawing { animation: redrawPulse 0.35s ease; }
+
+/* ========== TOAST ========== */
+.toast {
+  position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+  background: #1a1a1a; color: #F5F0E8; padding: 10px 24px;
+  border-radius: 20px; font-size: 14px; z-index: 300;
+  animation: fadeInOut 2s ease forwards;
+}
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========== NAVIGATION ========== -->
+<nav>
+  <div class="brand"><span class="brand-c">C</span><span class="brand-paintz">paintz</span></div>
+  <div class="nav-links">
+    <button data-page="home" class="active">首页</button>
+    <button data-page="favorites">收藏</button>
+    <button data-page="history">历史记录</button>
+    <button data-page="settings">设置</button>
+  </div>
+  <button class="sound-btn" id="soundToggle" title="音效开关">🔊</button>
+</nav>
+
+<!-- ========== MODULE TABS ========== -->
+<div class="module-tabs" id="moduleTabs">
+  <button class="m1 active" data-module="1">原创人设</button>
+  <button class="m2" data-module="2">同人二创</button>
+</div>
+
+<!-- ========== HOME PAGE ========== -->
+<div class="page visible" id="page-home">
+  <!-- Module 1 -->
+  <div id="m1Section">
+    <div class="dim-tags" id="dimTags"></div>
+    <div class="card-grid" id="m1Cards"></div>
+    <div class="btn-row" id="m1Actions">
+      <button class="btn btn-primary" id="m1Refresh">🔄 全部刷新</button>
+      <button class="btn btn-outline" id="m1Save">⭐ 收藏结果</button>
+      <button class="btn btn-outline" id="m1Unlock">🔓 一键解锁</button>
+      <button class="btn btn-outline" id="m1Share">📤 分享卡片</button>
+    </div>
+  </div>
+  <!-- Module 2 -->
+  <div id="m2Section" style="display:none;">
+    <div class="emotion-bar">
+      <label>轻松治愈</label>
+      <input type="range" min="0" max="100" value="50" id="emotionSlider">
+      <label>戏剧张力</label>
+    </div>
+    <div class="series-filter" id="seriesFilter"></div>
+    <div class="card-grid" id="m2Cards"></div>
+    <div class="btn-row" id="m2Actions">
+      <button class="btn btn-secondary" id="m2Refresh">🔄 全部刷新</button>
+      <button class="btn btn-outline" id="m2Save">⭐ 收藏结果</button>
+      <button class="btn btn-outline" id="m2Unlock">🔓 一键解锁</button>
+      <button class="btn btn-outline" id="m2Share">📤 分享卡片</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== FAVORITES PAGE ========== -->
+<div class="page" id="page-favorites">
+  <div class="fav-groups" id="favGroups"></div>
+</div>
+
+<!-- ========== HISTORY PAGE ========== -->
+<div class="page" id="page-history">
+  <div class="history-list" id="historyList"></div>
+</div>
+
+<!-- ========== SETTINGS PAGE ========== -->
+<div class="page" id="page-settings">
+  <div class="settings-page">
+    <div class="setting-item">
+      <label>音效开关</label>
+      <input type="checkbox" id="settingSound" checked>
+    </div>
+    <div class="setting-item">
+      <label>自定义词库</label>
+      <button class="btn btn-outline" id="openDictBtn">管理自定义词库 →</button>
+    </div>
+    <div class="copyright">
+      本工具仅供个人创作灵感参考，请尊重原作版权及二创生态，禁止将生成内容用于商业用途。
+    </div>
+  </div>
+</div>
+
+<!-- ========== SHARE MODAL ========== -->
+<div class="modal-overlay share-modal" id="shareModal">
+  <div class="modal">
+    <h2>分享卡片</h2>
+    <div class="share-canvas-wrap"><canvas id="shareCanvas"></canvas></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="shareClose">关闭</button>
+      <button class="btn btn-primary" id="shareSave">保存图片</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== CUSTOM DICT MODAL ========== -->
+<div class="modal-overlay" id="dictModal">
+  <div class="modal">
+    <h2>自定义词库</h2>
+    <div class="dim-select">
+      <select id="dictModule"><option value="1">原创人设</option><option value="2">同人二创</option></select>
+    </div>
+    <div class="dim-select">
+      <select id="dictDim"></select>
+    </div>
+    <textarea id="dictPaste" placeholder="粘贴词条，用换行、逗号、顿号或空格分隔&#10;例如：&#10;双马尾&#10;刺猬短发,遮眼长刘海&#10;蓬松卷发、丸子头"></textarea>
+    <div class="btn-row" style="padding:8px 0;"><button class="btn btn-outline" id="dictParse">识别词条</button></div>
+    <div class="parsed-words" id="dictParsed"></div>
+    <div class="btn-row" style="padding:8px 0;">
+      <button class="btn btn-primary" id="dictSave">保存到词库</button>
+      <button class="btn btn-outline" id="dictReset">恢复默认词库</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="dictClose">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== AUDIO ELEMENTS ========== -->
+<audio id="audioFlip" preload="auto" src="assets/sounds/card-flip.wav"></audio>
+<audio id="audioRedraw" preload="auto" src="assets/sounds/card-redraw.wav"></audio>
+
+<script>
+// ============================================================
+//  WORD BANKS — 词库数据
+// ============================================================
+
+const DEFAULT_DICT = {
+  module1: {
+    '发型': ['双马尾','刺猬短发','遮眼长刘海','蓬松卷发','丸子头','寸头','半扎马尾','脏辫','贴头皮编发','凌乱中分','不对称短发','齐肩波波头','三千烦恼丝长直发','侧边剃短','高马尾','低马尾','编发皇冠','卷翘呆毛','层次感碎发','遮半脸斜刘海'],
+    '发色': ['白银','樱花粉','深海蓝','暗红','炭黑','金棕','渐变紫','翠绿','灰白','焦糖色','冷灰蓝','酒红','奶白金','橘铜色','亚麻浅棕','靛青','玫瑰金','荧光黄绿','纯白','双色分染'],
+    '皮肤': ['奶白','小麦色','深棕','瓷白','金黄','银灰（非人类）','半透明（特殊存在）','暗金色','浅橄榄色','冷白'],
+    '眼睛': ['异色瞳','机械义眼','蒙眼布','总是半闭','瞳孔是十字形','会发光','眼白是黑色','总是含泪','细长狐狸眼','圆圆的无辜眼','眼下有泪痣','双瞳','眼中有星河','竖瞳','眼角有疤','戴着单片眼镜','盲眼但有感知力','眼神永远漠然'],
+    '人物设定': ['落魄魔法师','高中生侦探','末日佣兵','流浪歌手','贵族反叛者','机器人管家','海盗船长','山中隐士','时间旅行者','神明的弃徒','被通缉的医生','只在夜间出现的画家','替人保管秘密的酒保','失忆的前杀手','专门拯救反派的英雄','末班车司机','废墟里的图书管理员','会预言死亡的算命师','专门遗忘人的存在','两面间谍'],
+    '性格': ['傲娇但善良','沉默寡言','过度热情','懒散天才','神经质完美主义','口是心非','孩子气','随遇而安','表面冷漠内心滚烫','毒舌但在乎你','自我牺牲型','永远在笑但眼神很悲伤','强撑体面的崩溃边缘','极度理性却偏偏对你失控','嘴硬心软','看似无害实则危险','对世界漠然但护短','絮絮叨叨藏着真心','永远站在你这边','喜欢用玩笑掩盖认真'],
+    '互动道具': ['永远开不了的锁','会说话的剑','装满回忆的旧相机','坏掉的指南针','一只发光的手套','禁忌古书','空白的地图','破损的翅膀','装着陌生人照片的钱包','只剩一半的对戒','会自己翻页的日记本','装不满的沙漏','只响一次的怀表','没有镜像的镜子','会消失的信件','永远指向同一人的罗盘','用完就忘记内容的笔记本','只有特定人能看见的徽章','碎了还能走的怀表','钥匙但不知道开哪扇门'],
+    '隐藏秘密': [
+      '其实一直在默默帮助对方却从不说','曾经为了某人放弃了最重要的东西','有一段只属于自己的温柔回忆不敢告诉任何人','一直把对方说过的每一句话都记着','其实很早就喜欢了只是从来没开口','曾经有过一个秘密约定但对方忘了','每年都会在同一个地方等一个不会来的人','其实一直保留着对方送的东西','年少时曾被某人救过从此改变了人生方向','有一封写好了却永远不会寄出去的信','曾经在最难过的时候被一个陌生人的善意撑过去','失去过一个重要的人所以格外珍惜现在身边的人','其实从小就一个人长大但假装没关系','有一个已经不在了的人一直活在心里','曾经答应过某人要好好活着所以一直撑着','喜欢一个人的时候习惯默默记住对方所有细节','其实很怕被遗忘所以总是第一个记住别人的名字','某段旅途中遇到过一个改变自己的人但再也没见过','曾经在最孤独的时候写下了很多信但都没有寄出','一直把某句话当作支撑自己的理由但从没说出口','其实会在难过的时候偷偷去一个没人知道的地方待着','失去记忆之前曾经非常爱过一个人','习惯把重要的东西藏起来是因为怕再次失去','心里有一个地方永远留给了某个人','答应过离开的人会替他好好看这个世界',
+      '其实私下是个游戏高手但在人前装作不会玩','有一个没人知道的奇怪才艺比如会口技或者能徒手开瓶盖','偷偷养了一只流浪猫但对外宣称自己不喜欢动物','其实超级喜欢吃甜食但在人前一直装作不在乎','有一个笔名写了很多年小说但从没告诉过任何人','每次路过宠物店都要进去待很久','其实记得每一个朋友的生日但假装忘了然后突然出现','私下会对着镜子练帅气的表情','有一首歌只在一个人的时候才唱','其实第一次见面就觉得对方很有趣只是装作不在意','会偷偷给认识的人画速写但从来不给他们看','睡觉前有个奇怪的仪式但绝对不会承认','其实方向感很差但每次都假装很自信地带路','曾经为了一个朋友学了一样东西只为了能和他有共同话题','其实一直悄悄记录着和重要的人在一起的每一个普通日子','其实超级怕鬼但每次都第一个说我不怕','私下会给认识的每个人起一个只有自己知道的外号','有一个别人绝对猜不到的奇怪爱好比如收集各地的奇怪路牌','其实非常喜欢八卦但表面上一副淡然的样子','会偷偷模仿认识的人说话的语气自娱自乐','每次经过扭蛋机都忍不住投一个但从不承认','其实非常容易被可爱的东西击中但绝对不表现出来','睡觉会说梦话但内容永远是些莫名其妙的事情','其实厨艺很好但每次都假装不会做饭','有一个从小到大一直在追的冷门作品但羞于启齿','走路喜欢专门踩路上的落叶听声音','其实非常喜欢下雨天但对外一直说讨厌下雨','曾经因为太投入看小说在公共场合笑出声然后假装咳嗽','遇到喜欢的人会不自觉开始说话更快但自己完全没意识到','其实每次骰子或者抽签运气都很好但假装是普通人'
+    ]
+  },
+  module2: {
+    '角色': [], // handled specially
+    '错位年代': [
+      '上古神话时代','夏商交替乱世','周朝礼乐鼎盛期','春秋列国并立','战国百家争鸣','秦朝一统天下初期','西汉丝绸之路繁盛期','东汉末年三国前夕','三国鼎立时期','魏晋南北朝隐士风流年代','隋朝大运河开凿时期','盛唐长安','晚唐藩镇割据','北宋汴京繁华期','南宋偏安江南','元朝草原帝国时代','明朝郑和下西洋时期','明末乱世','清朝康乾盛世','清末民初变革期','1920年代军阀混战上海','1930年代孤岛时期上海','抗战烽火岁月','1950年代新中国初建','1970年代末改革开放前夕','1980年代改革开放初期','1990年代香港回归前夕',
+      '古埃及法老鼎盛时期','古希腊城邦民主时代','古罗马帝国全盛时期','文艺复兴佛罗伦萨','奥斯曼帝国极盛时代','拿破仑征战欧洲时期','美国西部拓荒时代','大航海时代','维多利亚时期伦敦','禁酒令时期芝加哥','二战时期巴黎','二战后美国经济腾飞期','1960年代摇滚伦敦','1970年代纽约地下文化时期','星际殖民时代地球已被放弃','AI觉醒后的第一个十年','人类与异种族签订和平协议后的世界','记忆可以买卖的近未来都市','末日后第一个重建文明的世纪','时间旅行技术刚被公开的混乱年代','人类意识可以上传的数字永生时代','地球与平行世界首次接触后的动荡期','最后一座城市仍在运转的终末时代','2099年东京','末日后第十年','星际文明时代','魔法与科技并存的架空世界'
+    ],
+    '错位地点': [
+      '深夜便利店','雨夜街头','学校天台','放学后的教室','医院走廊','菜市场清晨','公交车最后一排','图书馆角落','废弃游乐场','战地临时医院','列车最后一节车厢','审讯室','地下避难所','荒废的神社','孤岛灯塔','樱花树下','海边礁石','雪山山顶','屋顶水塔旁','夕阳下的麦田','深夜的游泳池','星空下的帐篷','废墟里的花园','雨中的电话亭','云朵上的咖啡馆','漂浮的图书馆','时间停止的超市','梦境边缘的车站','永远是傍晚的街道','没有出口的迷宫'
+    ],
+    '情境': {
+      love: ['替他包扎伤口','共用一把伞','把自己的外套披在对方身上','四目相对后谁也没先开口','被迫靠得很近','手碰到手的瞬间','对方突然挡在自己前面','第一次叫了对方的名字','抓住对方的手腕不让走','明明可以走却没走','说了句你去哪我去哪','发现对方一直在看自己','假装没事但手在抖'],
+      family: ['时隔多年在陌生城市偶然认出了家人的背影','替离开的人保留着他房间里所有的东西','终于说出了一句很久以前就该说的对不起','第一次做了一道对方最爱吃的菜','在对方不知道的地方偷偷骄傲着','翻出了小时候一起拍的照片','老了之后还是习惯给对方留一盏灯','终于在某个普通的傍晚说出了我爱你','陪着对方坐在医院走廊一句话都没说','答应了离开的人要替他照顾好家人'],
+      friend: ['在最崩溃的夜里接到了对方打来的电话','一起坐在天台什么都没说却什么都懂了','多年后在陌生城市重逢第一句话还是以前的暗号','帮对方擦掉脸上的泥假装什么都没看见','两个人一起迷路却谁也不承认怕','在对方最难看的时候选择留下来','明明吵了架还是第一个出现在对方需要的地方','陪对方等一个可能不会来的人','替对方保守了一个秘密很多年','一起做了一件蠢事然后笑着互相推卸责任'],
+      stranger: ['在深夜的车站替一个陌生人指了路然后再也没见过','被一个素不相识的人在最难过的时候说了句加油','雨天有人把伞悄悄推过来然后转身就走','在拥挤的车厢里有人帮你挡住了人群','对方只是笑了一下却让人记了很多年','老人独自坐在公园长椅上喂鸽子','一个小孩把手里唯一的糖分给了陌生人','末班车上只剩两个陌生人各自看向窗外','战乱中素不相识的两个人互相护着走过了一段路','在异乡听见有人说家乡话忍不住回头']
+    }
+  }
+};
+
+// Characters organized by series
+const CHARACTERS = {
+  '排球少年': { single: ['牛岛若利','宫侑','影山飞雄','孤爪研磨','木兔辰也','西谷夕','月岛蠢','菅原孝支','泽村大地','东峰旭','田中龙之介','山口忠','清水洁子','及川彻','岩泉一'], cp: [] },
+  '强风吹拂': { single: ['寒崎走','清瀬灰二','神童','王子','城太郎','贵志','油井','林','杉山'], cp: [] },
+  '网球王子': { single: ['越前龙马','手冢国光','不二周助','菊丸英二','大石秀一郎','河村隆','乾贞治','海堂薰','桃城武','幸村精市','真田弦一郎','仁王雅治','切原赤也','向日岳人','白石蔵之介','忍足侑士'], cp: [] },
+  '黑子的篮球': { single: ['黑子哲也','火神大我','青峰大辉','绿间真太郎','紫原敦','赤司征十郎','高尾和成','花宫任','木吉铁平','笠松幸男','氷室辰也'], cp: [] },
+  '王牌投手 振臂高挥': { single: ['降谷暁','沢村栄純','御幸一也','小湊春市','小湃亮介','前园健太','东条秀明','结城哲也','克里斯·沙瓦'], cp: [] },
+  '金牌得主': { single: ['一条芙由子','勝利院けい','田中コーチ'], cp: [] },
+  '火影忍者': { single: ['卡卡西','佐助','鸣人','小樱','雏田','小李','我爱罗','宇智波鼬','大和','长门','小南','香燐','天天','宁次','飞段','干柿鬼鲛'], cp: ['佐×樱','鸣×樱','水门×久子'] },
+  '犬夜叉': { single: ['杀生丸','犬夜叉','戈薇','神乐','奈落','桔梗','七宝','珊瑚','弥勒','琥珀'], cp: ['杀×玲'] },
+  '灵能百分百': { single: ['mob（影山茂夫）','爪印（Reigen）','利根川','影山律','竹中三乃','迪莫特'], cp: [] },
+  'COD': { single: [], cp: ['Soap×你','Ghost×你','Gaz×你','Alejandro×你','Farah×你','Price×你','Roach×你','Grim×你'] },
+  'FF7': { single: ['克劳德','赛菲罗斯','扎克斯','雷诺','文森特','蒂法','爱丽丝','红十三','西德'], cp: [] },
+  '恋与深空': { single: [], cp: ['黎深×你','祁煜×你','秦彻×你','沈星回×你'] }
+};
+
+const M1_DIM_NAMES = ['发型','发色','皮肤','眼睛','人物设定','性格','互动道具','隐藏秘密'];
+const M2_CARD_TYPES = ['角色','错位年代','错位地点','情境'];
+
+// ============================================================
+//  STATE
+// ============================================================
+
+let state = {
+  page: 'home',
+  module: 1,
+  soundEnabled: true,
+  m1Dims: [...M1_DIM_NAMES],
+  m1Results: {},
+  m1Locks: {},
+  m1Flipped: {},
+  m2Results: {},
+  m2Locks: {},
+  m2Flipped: {},
+  m2Emotion: 50,
+  m2Series: [], // empty = all
+  favorites: { '待画清单': [], '已完成': [], '灵感存档': [] },
+  history: [],
+  customDict: { module1: {}, module2: {} }
+};
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('cpaintz_state');
+    if (saved) {
+      const s = JSON.parse(saved);
+      state.soundEnabled = s.soundEnabled !== undefined ? s.soundEnabled : true;
+      state.m1Dims = s.m1Dims || [...M1_DIM_NAMES];
+      state.m2Emotion = s.m2Emotion || 50;
+      state.m2Series = s.m2Series || [];
+      state.favorites = s.favorites || { '待画清单': [], '已完成': [], '灵感存档': [] };
+      state.history = s.history || [];
+      state.customDict = s.customDict || { module1: {}, module2: {} };
+      // reset transient state
+      state.m1Results = {}; state.m1Locks = {}; state.m1Flipped = {};
+      state.m2Results = {}; state.m2Locks = {}; state.m2Flipped = {};
+    }
+  } catch(e) { /* ignore */ }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem('cpaintz_state', JSON.stringify({
+      soundEnabled: state.soundEnabled,
+      m1Dims: state.m1Dims,
+      m2Emotion: state.m2Emotion,
+      m2Series: state.m2Series,
+      favorites: state.favorites,
+      history: state.history,
+      customDict: state.customDict
+    }));
+  } catch(e) { /* ignore */ }
+}
+
+// ============================================================
+//  HELPERS
+// ============================================================
+
+function randomPick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function getWords(dim, module) {
+  const dictKey = module === 1 ? 'module1' : 'module2';
+  const custom = (state.customDict[dictKey][dim] || []);
+  const defaults = (DEFAULT_DICT[dictKey][dim] || []);
+  if (typeof defaults === 'object' && !Array.isArray(defaults)) {
+    // nested (情境)
+    const allDefaults = Object.values(defaults).flat();
+    return [...allDefaults, ...custom];
+  }
+  return [...defaults, ...custom];
+}
+
+function getSituationWords() {
+  const defaults = DEFAULT_DICT.module2['情境'];
+  const custom = state.customDict.module2['情境'] || [];
+  const love = [...defaults.love, ...custom];
+  const family = [...defaults.family, ...custom];
+  const friend = [...defaults.friend, ...custom];
+  const stranger = [...defaults.stranger, ...custom];
+  return { love, family, friend, stranger };
+}
+
+function weightedSituation(emotion) {
+  const words = getSituationWords();
+  // emotion 0 = 轻松治愈 → weight love/family/friend/stranger
+  // emotion 100 = 戏剧张力 → weight stranger/family
+  let pool = [];
+  if (emotion < 33) {
+    pool = [...words.love, ...words.love, ...words.family, ...words.friend, ...words.friend, ...words.stranger];
+  } else if (emotion < 66) {
+    pool = [...words.love, ...words.family, ...words.family, ...words.friend, ...words.stranger, ...words.stranger];
+  } else {
+    pool = [...words.love, ...words.family, ...words.friend, ...words.stranger, ...words.stranger, ...words.stranger];
+  }
+  return randomPick(pool);
+}
+
+function playSound(name) {
+  if (!state.soundEnabled) return;
+  const el = document.getElementById(name === 'flip' ? 'audioFlip' : 'audioRedraw');
+  if (el) { el.currentTime = 0; el.play().catch(() => {}); }
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2100);
+}
+
+function formatTime(ts) {
+  const d = new Date(ts);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+// ============================================================
+//  RENDER — NAVIGATION
+// ============================================================
+
+function renderNav() {
+  document.querySelectorAll('nav .nav-links button').forEach(b => {
+    b.classList.toggle('active', b.dataset.page === state.page);
+  });
+  document.getElementById('moduleTabs').style.display = state.page === 'home' ? 'flex' : 'none';
+  document.getElementById('soundToggle').textContent = state.soundEnabled ? '🔊' : '🔇';
+  document.getElementById('settingSound').checked = state.soundEnabled;
+}
+
+// ============================================================
+//  RENDER — MODULE 1
+// ============================================================
+
+function drawModule1() {
+  state.m1Results = {};
+  state.m1Locks = {};
+  state.m1Flipped = {};
+  state.m1Dims.forEach(dim => {
+    const words = getWords(dim, 1);
+    state.m1Results[dim] = words.length > 0 ? randomPick(words) : '（词库为空）';
+  });
+}
+
+function renderModule1() {
+  // Dim tags
+  const tagContainer = document.getElementById('dimTags');
+  tagContainer.innerHTML = M1_DIM_NAMES.map(dim => {
+    const sel = state.m1Dims.includes(dim);
+    return `<button class="dim-tag${sel ? ' selected' : ''}" data-dim="${dim}">${dim}</button>`;
+  }).join('');
+
+  // Cards
+  const grid = document.getElementById('m1Cards');
+  if (Object.keys(state.m1Results).length === 0) drawModule1();
+
+  grid.innerHTML = state.m1Dims.map(dim => {
+    const word = state.m1Results[dim] || '';
+    const flipped = state.m1Flipped[dim];
+    const locked = state.m1Locks[dim];
+    return `
+    <div class="card-wrapper m1-card" data-dim="${dim}">
+      <div class="card-inner${flipped ? ' flipped' : ''}${locked ? ' locked' : ''}" data-dim="${dim}">
+        <div class="card-face card-back">
+          <img class="card-back-img" src="assets/images/module1-card-back.webp" alt="卡背" draggable="false">
+        </div>
+        <div class="card-face card-front">
+          <span class="card-tag">${dim}</span>
+          <span class="card-word">${word}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('m1Actions').style.display = 'flex';
+}
+
+// ============================================================
+//  RENDER — MODULE 2
+// ============================================================
+
+function getAvailableCharacters() {
+  const selectedSeries = state.m2Series.length > 0 ? state.m2Series : Object.keys(CHARACTERS);
+  let all = [];
+  selectedSeries.forEach(s => {
+    const data = CHARACTERS[s];
+    if (!data) return;
+    all = all.concat(data.single.map(c => ({ name: c, series: s, type: 'single' })));
+    all = all.concat(data.cp.map(c => ({ name: c, series: s, type: 'cp' })));
+  });
+  return all;
+}
+
+function drawModule2() {
+  state.m2Results = {};
+  state.m2Locks = {};
+  state.m2Flipped = {};
+  // Character
+  const chars = getAvailableCharacters();
+  state.m2Results['角色'] = chars.length > 0 ? randomPick(chars) : { name: '（无可用角色）', series: '', type: 'single' };
+  // Era
+  const eras = getWords('错位年代', 2);
+  state.m2Results['错位年代'] = eras.length > 0 ? randomPick(eras) : '（词库为空）';
+  // Location
+  const locs = getWords('错位地点', 2);
+  state.m2Results['错位地点'] = locs.length > 0 ? randomPick(locs) : '（词库为空）';
+  // Situation
+  state.m2Results['情境'] = weightedSituation(state.m2Emotion);
+}
+
+function renderModule2() {
+  // Series filter
+  const filterDiv = document.getElementById('seriesFilter');
+  filterDiv.innerHTML = Object.keys(CHARACTERS).map(s => {
+    const sel = state.m2Series.length === 0 || state.m2Series.includes(s);
+    return `<button class="series-tag${sel ? ' selected' : ''}" data-series="${s}">${s}</button>`;
+  }).join('');
+
+  // Emotion slider
+  document.getElementById('emotionSlider').value = state.m2Emotion;
+
+  // Cards
+  const grid = document.getElementById('m2Cards');
+  if (Object.keys(state.m2Results).length === 0) drawModule2();
+
+  grid.innerHTML = M2_CARD_TYPES.map(type => {
+    const result = state.m2Results[type];
+    let word = '';
+    let tag = type;
+    if (type === '角色' && result && typeof result === 'object') {
+      word = result.name;
+      tag = result.series || type;
+    } else {
+      word = result || '';
+    }
+    const flipped = state.m2Flipped[type];
+    const locked = state.m2Locks[type];
+    return `
+    <div class="card-wrapper m2-card" data-type="${type}">
+      <div class="card-inner${flipped ? ' flipped' : ''}${locked ? ' locked' : ''}" data-type="${type}">
+        <div class="card-face card-back">
+          <img class="card-back-img" src="assets/images/module2-card-back.webp" alt="卡背" draggable="false">
+        </div>
+        <div class="card-face card-front">
+          <span class="card-tag">${tag}</span>
+          <span class="card-word">${word}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('m2Actions').style.display = 'flex';
+}
+
+// ============================================================
+//  RENDER — PAGES
+// ============================================================
+
+function renderHome() {
+  document.getElementById('moduleTabs').querySelectorAll('button').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.module) === state.module);
+  });
+  if (state.module === 1) {
+    document.getElementById('m1Section').style.display = 'block';
+    document.getElementById('m2Section').style.display = 'none';
+    renderModule1();
+  } else {
+    document.getElementById('m1Section').style.display = 'none';
+    document.getElementById('m2Section').style.display = 'block';
+    renderModule2();
+  }
+}
+
+function renderFavorites() {
+  const container = document.getElementById('favGroups');
+  const groups = ['待画清单', '已完成', '灵感存档'];
+  container.innerHTML = groups.map(group => {
+    const items = state.favorites[group] || [];
+    return `
+    <div class="fav-group" data-group="${group}">
+      <h3>${group} (${items.length})</h3>
+      <div class="fav-items" data-group="${group}">
+        ${items.length === 0 ? '<div class="drop-hint">拖拽卡片到此处</div>' : ''}
+        ${items.map((item, idx) => `
+          <div class="fav-item" draggable="true" data-id="${item.id}" data-group="${group}" data-idx="${idx}">
+            <div class="fav-info">
+              <div class="fav-words">${favItemSummary(item)}</div>
+              <div class="fav-meta">${formatTime(item.ts)} · 模块${item.module === 1 ? '一' : '二'}</div>
+              ${item.notes ? `<div class="fav-notes">${item.notes}</div>` : ''}
+            </div>
+            <div class="fav-actions">
+              <button class="fav-move-btn" data-id="${item.id}" data-group="${group}" title="移动到">⋯</button>
+              <button class="fav-note-btn" data-id="${item.id}" title="备注">✏️</button>
+              <button class="fav-del-btn" data-id="${item.id}" data-group="${group}" title="删除">🗑️</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Drag events
+  setupFavDrag();
+}
+
+function favItemSummary(item) {
+  if (!item.results) return '';
+  if (item.module === 1) {
+    return Object.values(item.results).join(' · ');
+  } else {
+    const r = item.results;
+    const charName = r['角色'] && typeof r['角色'] === 'object' ? r['角色'].name : (r['角色'] || '');
+    return `${charName} · ${r['错位年代'] || ''} · ${r['错位地点'] || ''} · ${r['情境'] || ''}`;
+  }
+}
+
+function setupFavDrag() {
+  let dragData = null;
+
+  document.querySelectorAll('.fav-item').forEach(item => {
+    item.addEventListener('dragstart', e => {
+      dragData = { id: item.dataset.id, group: item.dataset.group };
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', JSON.stringify(dragData));
+    });
+    item.addEventListener('dragend', () => {
+      document.querySelectorAll('.fav-item').forEach(el => el.classList.remove('dragging'));
+      document.querySelectorAll('.drag-insert-line').forEach(el => el.remove());
+      dragData = null;
+    });
+  });
+
+  document.querySelectorAll('.fav-items').forEach(zone => {
+    zone.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (!dragData) return;
+      // Calculate insertion index based on cursor position
+      const items = Array.from(zone.querySelectorAll('.fav-item:not(.dragging)'));
+      document.querySelectorAll('.drag-insert-line').forEach(el => el.remove());
+
+      if (items.length === 0) return; // will append
+
+      let insertIdx = items.length;
+      for (let i = 0; i < items.length; i++) {
+        const rect = items[i].getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        if (e.clientY < midY) { insertIdx = i; break; }
+      }
+
+      // Show insertion indicator
+      const line = document.createElement('div');
+      line.className = 'drag-insert-line';
+      if (insertIdx < items.length) {
+        items[insertIdx].before(line);
+      } else {
+        zone.appendChild(line);
+      }
+    });
+
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      document.querySelectorAll('.drag-insert-line').forEach(el => el.remove());
+      if (!dragData) return;
+
+      const targetGroup = zone.dataset.group;
+      const { id, group: srcGroup } = dragData;
+      if (!state.favorites[srcGroup]) return;
+
+      const srcIdx = state.favorites[srcGroup].findIndex(i => i.id === id);
+      if (srcIdx === -1) return;
+      const item = state.favorites[srcGroup][srcIdx];
+
+      // Calculate target insertion index
+      const items = Array.from(zone.querySelectorAll('.fav-item'));
+      let insertIdx = items.length;
+      // Re-query items since DOM may have changed
+      const currentItems = Array.from(zone.querySelectorAll('.fav-item'));
+      const nonDragging = currentItems.filter(el => !el.classList.contains('dragging'));
+
+      if (nonDragging.length > 0) {
+        insertIdx = nonDragging.length;
+        for (let i = 0; i < nonDragging.length; i++) {
+          const rect = nonDragging[i].getBoundingClientRect();
+          const midY = rect.top + rect.height / 2;
+          if (e.clientY < midY) { insertIdx = i; break; }
+        }
+      }
+
+      // Remove from source
+      state.favorites[srcGroup].splice(srcIdx, 1);
+
+      // If source and target are the same, adjust insertIdx
+      if (srcGroup === targetGroup && srcIdx < insertIdx) {
+        insertIdx--;
+      }
+
+      // Insert at target position
+      if (!state.favorites[targetGroup]) state.favorites[targetGroup] = [];
+      state.favorites[targetGroup].splice(insertIdx, 0, item);
+
+      saveState();
+      renderFavorites();
+      const action = srcGroup === targetGroup ? '已排序' : `已移动到「${targetGroup}」`;
+      showToast(action);
+      dragData = null;
+    });
+
+    zone.addEventListener('dragleave', e => {
+      // Only remove line if actually leaving the zone
+      if (!zone.contains(e.relatedTarget)) {
+        document.querySelectorAll('.drag-insert-line').forEach(el => el.remove());
+      }
+    });
+  });
+}
+
+function renderHistory() {
+  const container = document.getElementById('historyList');
+  if (state.history.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:#AAA;">暂无历史记录</div>';
+    return;
+  }
+  container.innerHTML = state.history.map((item, idx) => `
+    <div class="history-item">
+      <div class="hist-info" data-idx="${idx}">
+        <div class="hist-words">${favItemSummary(item)}</div>
+        <div class="hist-meta">${formatTime(item.ts)} · 模块${item.module === 1 ? '一' : '二'}</div>
+      </div>
+      <button class="hist-del-btn" data-idx="${idx}" style="background:none;border:none;cursor:pointer;font-size:18px;">🗑️</button>
+    </div>
+  `).join('');
+}
+
+function renderSettings() {
+  document.getElementById('settingSound').checked = state.soundEnabled;
+  updateDictDimSelect();
+}
+
+// ============================================================
+//  ACTIONS
+// ============================================================
+
+function flipCard(module, key) {
+  if (module === 1) {
+    state.m1Flipped[key] = true;
+  } else {
+    state.m2Flipped[key] = true;
+  }
+  playSound('flip');
+  renderCurrentModule();
+}
+
+function redrawCard(module, key) {
+  if (module === 1) {
+    if (state.m1Locks[key]) return;
+    const words = getWords(key, 1);
+    state.m1Results[key] = words.length > 0 ? randomPick(words) : '（词库为空）';
+  } else {
+    if (state.m2Locks[key]) return;
+    if (key === '角色') {
+      const chars = getAvailableCharacters();
+      state.m2Results[key] = chars.length > 0 ? randomPick(chars) : { name: '（无可用角色）', series: '', type: 'single' };
+    } else if (key === '情境') {
+      state.m2Results[key] = weightedSituation(state.m2Emotion);
+    } else {
+      const words = getWords(key, 2);
+      state.m2Results[key] = words.length > 0 ? randomPick(words) : '（词库为空）';
+    }
+  }
+  playSound('redraw');
+  renderCurrentModule();
+}
+
+function toggleLock(module, key) {
+  if (module === 1) {
+    state.m1Locks[key] = !state.m1Locks[key];
+    if (!state.m1Locks[key] && !state.m1Flipped[key]) {
+      // unlocking: ensure flipped state is consistent
+    }
+  } else {
+    state.m2Locks[key] = !state.m2Locks[key];
+  }
+  const status = (module === 1 ? state.m1Locks[key] : state.m2Locks[key]) ? '已锁定' : '已解锁';
+  showToast(status);
+  renderCurrentModule();
+}
+
+function renderCurrentModule() {
+  if (state.module === 1) renderModule1();
+  else renderModule2();
+}
+
+function refreshAll(module) {
+  if (module === 1) {
+    state.m1Dims.forEach(dim => {
+      if (!state.m1Locks[dim]) {
+        const words = getWords(dim, 1);
+        state.m1Results[dim] = words.length > 0 ? randomPick(words) : '（词库为空）';
+        state.m1Flipped[dim] = false;
+      }
+    });
+  } else {
+    M2_CARD_TYPES.forEach(type => {
+      if (!state.m2Locks[type]) {
+        if (type === '角色') {
+          const chars = getAvailableCharacters();
+          state.m2Results[type] = chars.length > 0 ? randomPick(chars) : { name: '（无可用角色）', series: '', type: 'single' };
+        } else if (type === '情境') {
+          state.m2Results[type] = weightedSituation(state.m2Emotion);
+        } else {
+          const words = getWords(type, 2);
+          state.m2Results[type] = words.length > 0 ? randomPick(words) : '（词库为空）';
+        }
+        state.m2Flipped[type] = false;
+      }
+    });
+  }
+  playSound('redraw');
+  renderCurrentModule();
+}
+
+function unlockAll(module) {
+  if (module === 1) {
+    Object.keys(state.m1Locks).forEach(k => delete state.m1Locks[k]);
+  } else {
+    Object.keys(state.m2Locks).forEach(k => delete state.m2Locks[k]);
+  }
+  showToast('已全部解锁');
+  renderCurrentModule();
+}
+
+function saveToHistory() {
+  const results = state.module === 1 ? state.m1Results : state.m2Results;
+  const entry = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    module: state.module,
+    results: JSON.parse(JSON.stringify(results)),
+    ts: Date.now()
+  };
+  state.history.unshift(entry);
+  if (state.history.length > 20) state.history = state.history.slice(0, 20);
+  saveState();
+}
+
+function saveToFavorites() {
+  const results = state.module === 1 ? state.m1Results : state.m2Results;
+  const entry = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    module: state.module,
+    results: JSON.parse(JSON.stringify(results)),
+    ts: Date.now(),
+    notes: ''
+  };
+  state.favorites['待画清单'].push(entry);
+  saveState();
+  showToast('已添加到待画清单');
+}
+
+function restoreHistory(idx) {
+  const item = state.history[idx];
+  if (!item) return;
+  state.module = item.module;
+  if (item.module === 1) {
+    state.m1Results = JSON.parse(JSON.stringify(item.results));
+    state.m1Flipped = {};
+    Object.keys(state.m1Results).forEach(k => { state.m1Flipped[k] = true; });
+    state.m1Locks = {};
+    // Force show all dimensions from restored result (overrides user filter)
+    state.m1Dims = Object.keys(state.m1Results);
+  } else {
+    state.m2Results = JSON.parse(JSON.stringify(item.results));
+    state.m2Flipped = {};
+    Object.keys(state.m2Results).forEach(k => { state.m2Flipped[k] = true; });
+    state.m2Locks = {};
+  }
+  state.page = 'home';
+  renderApp();
+  showToast('已还原结果');
+}
+
+// ============================================================
+//  SHARE CARD
+// ============================================================
+
+function generateShareCard() {
+  const canvas = document.getElementById('shareCanvas');
+  const ctx = canvas.getContext('2d');
+  const results = state.module === 1 ? state.m1Results : state.m2Results;
+  const accentColor = state.module === 1 ? '#8B6914' : '#6B1D2F';
+  const padding = 50;
+  const maxWidth = 600 - padding * 2;
+
+  // Set font first so we can measure
+  ctx.font = 'italic 300 30px "STKaiti", "KaiTi", "Georgia", "Times New Roman", serif';
+
+  // Build and filter word list — drop words that overflow
+  let allWords = [];
+  if (state.module === 1) {
+    allWords = Object.values(results).filter(w => w && w !== '（词库为空）');
+  } else {
+    const charResult = results['角色'];
+    const charName = charResult && typeof charResult === 'object' ? charResult.name : (charResult || '');
+    if (charName) allWords.push(charName);
+    ['错位年代', '错位地点', '情境'].forEach(t => {
+      if (results[t] && results[t] !== '（词库为空）') allWords.push(results[t]);
+    });
+  }
+  const words = allWords.filter(w => ctx.measureText(w).width <= maxWidth);
+
+  // Layout
+  const lineHeight = 52;
+  const startY = 60;
+  canvas.width = 600;
+  canvas.height = Math.max(300, startY + words.length * lineHeight + 80);
+
+  // Light brown paper background
+  const bgColor = '#D9C7B0';
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // Subtle grain texture
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  for (let i = 0; i < imageData.data.length; i += 4) {
+    const noise = (Math.random() - 0.5) * 10;
+    imageData.data[i] += noise;
+    imageData.data[i + 1] += noise;
+    imageData.data[i + 2] += noise;
+  }
+  ctx.putImageData(imageData, 0, 0);
+
+  // Flowing gold border lines
+  const bm = 16; // border margin
+  ctx.strokeStyle = 'rgba(180,140,50,0.45)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([]);
+  // Outer frame
+  ctx.beginPath();
+  ctx.roundRect(bm, bm, canvas.width - bm * 2, canvas.height - bm * 2, 4);
+  ctx.stroke();
+  // Inner flowing line — dashed gold
+  ctx.strokeStyle = 'rgba(180,140,50,0.28)';
+  ctx.lineWidth = 0.6;
+  ctx.setLineDash([6, 14]);
+  ctx.lineDashOffset = 3;
+  ctx.beginPath();
+  ctx.roundRect(bm + 8, bm + 8, canvas.width - (bm + 8) * 2, canvas.height - (bm + 8) * 2, 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Words — thin flowing font, left aligned
+  ctx.fillStyle = accentColor;
+  ctx.font = 'italic 300 30px "STKaiti", "KaiTi", "Georgia", "Times New Roman", serif';
+  ctx.textAlign = 'left';
+  words.forEach((word, i) => {
+    const y = startY + i * lineHeight;
+    ctx.fillText(word, padding, y);
+  });
+
+  // Watermark — matching wood tone, thin flowing font
+  ctx.fillStyle = 'rgba(120,100,70,0.45)';
+  ctx.font = 'italic 300 22px "STKaiti", "KaiTi", "Georgia", "Times New Roman", serif';
+  ctx.textAlign = 'right';
+  ctx.fillText('Cpaintz', canvas.width - 40, canvas.height - 25);
+
+  return canvas;
+}
+
+function showShareModal() {
+  generateShareCard();
+  document.getElementById('shareModal').classList.add('visible');
+}
+
+function saveShareImage() {
+  const canvas = generateShareCard();
+  const link = document.createElement('a');
+  link.download = `cpaintz_${Date.now()}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  showToast('图片已保存');
+}
+
+// ============================================================
+//  CUSTOM DICT
+// ============================================================
+
+let parsedWords = [];
+
+function updateDictDimSelect() {
+  const module = parseInt(document.getElementById('dictModule').value);
+  const select = document.getElementById('dictDim');
+  if (module === 1) {
+    select.innerHTML = M1_DIM_NAMES.map(d => `<option value="${d}">${d}</option>`).join('');
+  } else {
+    const dims = ['错位年代','错位地点','情境'];
+    select.innerHTML = dims.map(d => `<option value="${d}">${d}</option>`).join('');
+  }
+  parsedWords = [];
+  document.getElementById('dictParsed').innerHTML = '';
+  document.getElementById('dictPaste').value = '';
+}
+
+function parseWords() {
+  const raw = document.getElementById('dictPaste').value.trim();
+  if (!raw) { showToast('请先粘贴词条'); return; }
+  const split = raw.split(/[\n,，、\s]+/).filter(w => w.trim().length > 0);
+  const module = parseInt(document.getElementById('dictModule').value);
+  const dim = document.getElementById('dictDim').value;
+  const dictKey = module === 1 ? 'module1' : 'module2';
+  const existingCustom = state.customDict[dictKey][dim] || [];
+  const defaults = DEFAULT_DICT[dictKey][dim] || [];
+  const defaultFlat = typeof defaults === 'object' && !Array.isArray(defaults)
+    ? Object.values(defaults).flat() : defaults;
+
+  parsedWords = split.map(w => ({
+    word: w.trim(),
+    isDefault: defaultFlat.includes(w.trim()),
+    isExisting: existingCustom.includes(w.trim())
+  }));
+
+  document.getElementById('dictParsed').innerHTML = parsedWords.map((pw, i) => {
+    let cls = '';
+    if (pw.isDefault) cls = 'style="background:#DDD;color:#999;" title="系统默认词，不可编辑"';
+    else if (pw.isExisting) cls = 'class="custom" title="已在自定义词库中"';
+    return `<span class="parsed-word" ${cls}>${pw.word}${!pw.isDefault ? `<button data-idx="${i}" class="pw-del">×</button>` : ''}</span>`;
+  }).join('');
+}
+
+function saveCustomWords() {
+  const module = parseInt(document.getElementById('dictModule').value);
+  const dim = document.getElementById('dictDim').value;
+  const dictKey = module === 1 ? 'module1' : 'module2';
+
+  const newWords = parsedWords.filter(pw => !pw.isDefault).map(pw => pw.word);
+  if (!state.customDict[dictKey]) state.customDict[dictKey] = {};
+  if (!state.customDict[dictKey][dim]) state.customDict[dictKey][dim] = [];
+
+  // Merge with existing
+  const existing = state.customDict[dictKey][dim];
+  newWords.forEach(w => { if (!existing.includes(w)) existing.push(w); });
+
+  saveState();
+  showToast(`已添加 ${newWords.length} 个词条到「${dim}」`);
+  parsedWords = [];
+  document.getElementById('dictParsed').innerHTML = '';
+  document.getElementById('dictPaste').value = '';
+
+  // Refresh cards if on home
+  if (state.page === 'home') {
+    if (state.module === 1) { drawModule1(); renderModule1(); }
+    else { drawModule2(); renderModule2(); }
+  }
+}
+
+function resetCustomDict() {
+  state.customDict = { module1: {}, module2: {} };
+  saveState();
+  showToast('已恢复默认词库');
+  if (state.page === 'home') {
+    if (state.module === 1) { drawModule1(); renderModule1(); }
+    else { drawModule2(); renderModule2(); }
+  }
+}
+
+// ============================================================
+//  RENDER APP
+// ============================================================
+
+function renderApp() {
+  // Pages
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('visible'));
+  const pageEl = document.getElementById(`page-${state.page}`);
+  if (pageEl) pageEl.classList.add('visible');
+
+  renderNav();
+
+  switch (state.page) {
+    case 'home': renderHome(); break;
+    case 'favorites': renderFavorites(); break;
+    case 'history': renderHistory(); break;
+    case 'settings': renderSettings(); break;
+  }
+}
+
+// ============================================================
+//  EVENT DELEGATION
+// ============================================================
+
+document.addEventListener('click', e => {
+  // Nav links
+  const navBtn = e.target.closest('nav .nav-links button');
+  if (navBtn) {
+    state.page = navBtn.dataset.page;
+    renderApp();
+    return;
+  }
+
+  // Sound toggle (nav)
+  if (e.target.closest('#soundToggle')) {
+    state.soundEnabled = !state.soundEnabled;
+    saveState();
+    renderNav();
+    showToast(state.soundEnabled ? '音效已开启' : '音效已静音');
+    return;
+  }
+
+  // Module tabs
+  const modBtn = e.target.closest('.module-tabs button');
+  if (modBtn) {
+    const newModule = parseInt(modBtn.dataset.module);
+    if (newModule !== state.module) {
+      state.module = newModule;
+      if (newModule === 1) { state.m1Results = {}; state.m1Locks = {}; state.m1Flipped = {}; }
+      else { state.m2Results = {}; state.m2Locks = {}; state.m2Flipped = {}; }
+      renderHome();
+    }
+    return;
+  }
+
+  // Module 1 — dim tag toggle
+  const dimTag = e.target.closest('.dim-tag');
+  if (dimTag) {
+    const dim = dimTag.dataset.dim;
+    if (state.m1Dims.includes(dim)) {
+      if (state.m1Dims.length <= 2) { showToast('至少保留2个维度'); return; }
+      state.m1Dims = state.m1Dims.filter(d => d !== dim);
+      delete state.m1Results[dim];
+      delete state.m1Locks[dim];
+      delete state.m1Flipped[dim];
+    } else {
+      state.m1Dims.push(dim);
+    }
+    drawModule1();
+    renderModule1();
+    saveState();
+    return;
+  }
+
+  // Card click — goes through double-click detection timer
+  const cardInner = e.target.closest('.card-inner');
+  if (cardInner) {
+    const inM1 = cardInner.closest('#m1Cards');
+    const inM2 = cardInner.closest('#m2Cards');
+    if (inM1 || inM2) {
+      handleCardClick(cardInner);
+      return;
+    }
+  }
+
+  // Module 1 actions
+  if (e.target.closest('#m1Refresh')) { refreshAll(1); return; }
+  if (e.target.closest('#m1Save')) { saveToFavorites(); return; }
+  if (e.target.closest('#m1Unlock')) { unlockAll(1); return; }
+  if (e.target.closest('#m1Share')) { showShareModal(); return; }
+
+  // Module 2 actions
+  if (e.target.closest('#m2Refresh')) { refreshAll(2); return; }
+  if (e.target.closest('#m2Save')) { saveToFavorites(); return; }
+  if (e.target.closest('#m2Unlock')) { unlockAll(2); return; }
+  if (e.target.closest('#m2Share')) { showShareModal(); return; }
+
+  // Series filter
+  const seriesTag = e.target.closest('.series-tag');
+  if (seriesTag) {
+    const s = seriesTag.dataset.series;
+    if (state.m2Series.length === 0) {
+      // All selected → select only this one
+      state.m2Series = [s];
+    } else if (state.m2Series.includes(s)) {
+      state.m2Series = state.m2Series.filter(x => x !== s);
+    } else {
+      state.m2Series.push(s);
+    }
+    drawModule2();
+    renderModule2();
+    saveState();
+    return;
+  }
+
+  // History — click to restore
+  const histInfo = e.target.closest('.hist-info');
+  if (histInfo) {
+    restoreHistory(parseInt(histInfo.dataset.idx));
+    return;
+  }
+  // History — delete
+  const histDel = e.target.closest('.hist-del-btn');
+  if (histDel) {
+    const idx = parseInt(histDel.dataset.idx);
+    state.history.splice(idx, 1);
+    saveState();
+    renderHistory();
+    showToast('已删除');
+    return;
+  }
+
+  // Favorites — delete
+  const favDel = e.target.closest('.fav-del-btn');
+  if (favDel) {
+    const group = favDel.dataset.group;
+    const id = favDel.dataset.id;
+    state.favorites[group] = state.favorites[group].filter(i => i.id !== id);
+    saveState();
+    renderFavorites();
+    showToast('已删除');
+    return;
+  }
+
+  // Favorites — move menu
+  const favMove = e.target.closest('.fav-move-btn');
+  if (favMove) {
+    e.stopPropagation();
+    // Remove any existing menu
+    document.querySelectorAll('.fav-move-menu').forEach(m => m.remove());
+    const id = favMove.dataset.id;
+    const currentGroup = favMove.dataset.group;
+    const menu = document.createElement('div');
+    menu.className = 'fav-move-menu';
+    ['待画清单', '已完成', '灵感存档'].forEach(g => {
+      const btn = document.createElement('button');
+      btn.textContent = g === currentGroup ? `✓ ${g}` : g;
+      if (g === currentGroup) btn.classList.add('current');
+      btn.addEventListener('click', ev => {
+        ev.stopPropagation();
+        if (g === currentGroup) return;
+        // Move item
+        let item = null;
+        for (const src of Object.keys(state.favorites)) {
+          const idx = state.favorites[src].findIndex(i => i.id === id);
+          if (idx !== -1) { item = state.favorites[src].splice(idx, 1)[0]; break; }
+        }
+        if (item) {
+          state.favorites[g].push(item);
+          saveState();
+          renderFavorites();
+          showToast(`已移至「${g}」`);
+        }
+        menu.remove();
+      });
+      menu.appendChild(btn);
+    });
+    favMove.parentElement.appendChild(menu);
+    return;
+  }
+
+  // Close move menu on outside click
+  if (!e.target.closest('.fav-move-btn') && !e.target.closest('.fav-move-menu')) {
+    document.querySelectorAll('.fav-move-menu').forEach(m => m.remove());
+  }
+
+  // Favorites — note
+  const favNote = e.target.closest('.fav-note-btn');
+  if (favNote) {
+    const id = favNote.dataset.id;
+    let item = null, group = null;
+    for (const g of Object.keys(state.favorites)) {
+      item = state.favorites[g].find(i => i.id === id);
+      if (item) { group = g; break; }
+    }
+    if (item) {
+      const note = prompt('添加备注：', item.notes || '');
+      if (note !== null) {
+        item.notes = note;
+        saveState();
+        renderFavorites();
+      }
+    }
+    return;
+  }
+
+  // Settings — sound
+  if (e.target.closest('#settingSound')) {
+    state.soundEnabled = document.getElementById('settingSound').checked;
+    saveState();
+    renderNav();
+    return;
+  }
+
+  // Settings — open custom dict
+  if (e.target.closest('#openDictBtn')) {
+    updateDictDimSelect();
+    document.getElementById('dictModal').classList.add('visible');
+    return;
+  }
+
+  // Dict modal — close
+  if (e.target.closest('#dictClose')) {
+    document.getElementById('dictModal').classList.remove('visible');
+    return;
+  }
+
+  // Dict modal — parse
+  if (e.target.closest('#dictParse')) { parseWords(); return; }
+
+  // Dict modal — save
+  if (e.target.closest('#dictSave')) { saveCustomWords(); return; }
+
+  // Dict modal — reset
+  if (e.target.closest('#dictReset')) {
+    if (confirm('确定要恢复默认词库吗？所有自定义词条将被清除。')) resetCustomDict();
+    return;
+  }
+
+  // Dict modal — parsed word delete
+  const pwDel = e.target.closest('.pw-del');
+  if (pwDel) {
+    const idx = parseInt(pwDel.dataset.idx);
+    parsedWords.splice(idx, 1);
+    // Re-render parsed
+    const parsedDiv = document.getElementById('dictParsed');
+    parsedDiv.innerHTML = parsedWords.map((pw, i) => {
+      let cls = '';
+      if (pw.isDefault) cls = 'style="background:#DDD;color:#999;"';
+      else if (pw.isExisting) cls = 'class="custom"';
+      return `<span class="parsed-word" ${cls}>${pw.word}${!pw.isDefault ? `<button data-idx="${i}" class="pw-del">×</button>` : ''}</span>`;
+    }).join('');
+    return;
+  }
+
+  // Dict module change
+  if (e.target.closest('#dictModule')) { updateDictDimSelect(); return; }
+
+  // Share modal — close
+  if (e.target.closest('#shareClose')) {
+    document.getElementById('shareModal').classList.remove('visible');
+    return;
+  }
+
+  // Share modal — save
+  if (e.target.closest('#shareSave')) { saveShareImage(); return; }
+
+  // Modal overlay click to close
+  if (e.target.classList.contains('modal-overlay')) {
+    e.target.classList.remove('visible');
+    return;
+  }
+});
+
+// ============================================================
+//  CARD INTERACTION — click/dblclick/long-press
+// ============================================================
+
+let cardClickTimer = null;
+let pendingCardClick = null;
+let longPressTimer = null;
+let longPressFired = false;
+
+function getCardKey(cardInner) {
+  return cardInner.dataset.dim || cardInner.dataset.type;
+}
+
+function handleCardSingleClick(module, key) {
+  if (module === 1) {
+    if (!state.m1Flipped[key]) {
+      // Flip — DOM manipulation for 3D animation
+      state.m1Flipped[key] = true;
+      playSound('flip');
+      const card = document.querySelector(`#m1Cards .card-inner[data-dim="${CSS.escape(key)}"]`);
+      if (card) card.classList.add('flipped');
+      if (state.m1Dims.every(d => state.m1Flipped[d])) saveToHistory();
+    } else if (!state.m1Locks[key]) {
+      // Redraw — update text + pulse animation
+      const words = getWords(key, 1);
+      state.m1Results[key] = words.length > 0 ? randomPick(words) : '（词库为空）';
+      playSound('redraw');
+      const wordEl = document.querySelector(`#m1Cards .card-inner[data-dim="${CSS.escape(key)}"] .card-word`);
+      if (wordEl) {
+        wordEl.textContent = state.m1Results[key];
+        const inner = wordEl.closest('.card-inner');
+        inner.classList.add('redrawing');
+        setTimeout(() => inner.classList.remove('redrawing'), 350);
+      }
+    }
+  } else {
+    if (!state.m2Flipped[key]) {
+      state.m2Flipped[key] = true;
+      playSound('flip');
+      const card = document.querySelector(`#m2Cards .card-inner[data-type="${CSS.escape(key)}"]`);
+      if (card) card.classList.add('flipped');
+      if (M2_CARD_TYPES.every(t => state.m2Flipped[t])) saveToHistory();
+    } else if (!state.m2Locks[key]) {
+      playSound('redraw');
+      const inner = document.querySelector(`#m2Cards .card-inner[data-type="${CSS.escape(key)}"]`);
+      const wordEl = inner ? inner.querySelector('.card-word') : null;
+      const tagEl = inner ? inner.querySelector('.card-tag') : null;
+      if (key === '角色') {
+        const chars = getAvailableCharacters();
+        state.m2Results[key] = chars.length > 0 ? randomPick(chars) : { name: '（无可用角色）', series: '', type: 'single' };
+        if (wordEl) wordEl.textContent = state.m2Results[key].name;
+        if (tagEl) tagEl.textContent = state.m2Results[key].series || key;
+      } else if (key === '情境') {
+        state.m2Results[key] = weightedSituation(state.m2Emotion);
+        if (wordEl) wordEl.textContent = state.m2Results[key];
+      } else {
+        const w = getWords(key, 2);
+        state.m2Results[key] = w.length > 0 ? randomPick(w) : '（词库为空）';
+        if (wordEl) wordEl.textContent = state.m2Results[key];
+      }
+      if (inner) {
+        inner.classList.add('redrawing');
+        setTimeout(() => inner.classList.remove('redrawing'), 350);
+      }
+    }
+  }
+}
+
+function handleCardDoubleClick(module, key) {
+  if (module === 1) {
+    if (state.m1Flipped[key]) {
+      state.m1Locks[key] = !state.m1Locks[key];
+      showToast(state.m1Locks[key] ? '🔒 已锁定' : '🔓 已解锁');
+      const card = document.querySelector(`#m1Cards .card-inner[data-dim="${CSS.escape(key)}"]`);
+      if (card) card.classList.toggle('locked', state.m1Locks[key]);
+    }
+  } else {
+    if (state.m2Flipped[key]) {
+      state.m2Locks[key] = !state.m2Locks[key];
+      showToast(state.m2Locks[key] ? '🔒 已锁定' : '🔓 已解锁');
+      const card = document.querySelector(`#m2Cards .card-inner[data-type="${CSS.escape(key)}"]`);
+      if (card) card.classList.toggle('locked', state.m2Locks[key]);
+    }
+  }
+}
+
+function handleCardClick(cardInner) {
+  if (longPressFired) { longPressFired = false; return; }
+
+  const module = cardInner.closest('#m1Cards') ? 1 : 2;
+  const key = getCardKey(cardInner);
+  if (!key) return;
+
+  if (cardClickTimer) {
+    // Second click within 280ms = double-click → toggle lock
+    clearTimeout(cardClickTimer);
+    cardClickTimer = null;
+    pendingCardClick = null;
+    handleCardDoubleClick(module, key);
+  } else {
+    pendingCardClick = { module, key };
+    cardClickTimer = setTimeout(() => {
+      cardClickTimer = null;
+      if (pendingCardClick) {
+        handleCardSingleClick(pendingCardClick.module, pendingCardClick.key);
+        pendingCardClick = null;
+      }
+    }, 280);
+  }
+}
+
+// Mobile long-press → toggle lock (same as desktop double-click)
+document.addEventListener('touchstart', e => {
+  const cardInner = e.target.closest('.card-inner');
+  if (!cardInner) return;
+  const inM1 = cardInner.closest('#m1Cards');
+  const inM2 = cardInner.closest('#m2Cards');
+  if (!inM1 && !inM2) return;
+
+  longPressFired = false;
+  longPressTimer = setTimeout(() => {
+    longPressFired = true;
+    const module = cardInner.closest('#m1Cards') ? 1 : 2;
+    const key = getCardKey(cardInner);
+    if (key) handleCardDoubleClick(module, key);
+  }, 600);
+}, { passive: true });
+
+document.addEventListener('touchend', () => {
+  clearTimeout(longPressTimer);
+});
+document.addEventListener('touchmove', () => {
+  clearTimeout(longPressTimer);
+});
+
+// ============================================================
+//  EMOTION SLIDER
+// ============================================================
+
+document.getElementById('emotionSlider').addEventListener('input', e => {
+  state.m2Emotion = parseInt(e.target.value);
+  saveState();
+  // Don't auto-update cards — user clicks to redraw after sliding
+});
+
+// ============================================================
+//  INIT
+// ============================================================
+
+function init() {
+  loadState();
+  renderApp();
+
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js').catch(() => {});
+  }
+}
+
+init();
+</script>
+</body>
+</html>

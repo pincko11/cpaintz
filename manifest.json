@@ -1,0 +1,19 @@
+{
+  "name": "Cpaintz - 个人二创灵感工具",
+  "short_name": "Cpaintz",
+  "description": "个人二创画师灵感随机工具，原创人设与二创场景生成",
+  "start_url": "/cpaintz/",
+  "scope": "/cpaintz/",
+  "display": "standalone",
+  "background_color": "#F5F0E8",
+  "theme_color": "#1a1a1a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "assets/images/module1-card-back.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    }
+  ]
+}
