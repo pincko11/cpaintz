@@ -23,6 +23,37 @@ body {
   min-height: 100vh;
 }
 
+/* ========== PASSWORD LOCK ========== */
+#lockOverlay {
+  position: fixed; inset: 0; background: #F5F0E8; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+}
+#lockOverlay.hidden { display: none; }
+.lock-card {
+  background: #1a1a1a; border-radius: 16px; padding: 40px 32px;
+  text-align: center; width: 300px; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+.lock-brand {
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: 32px; font-weight: 900; font-style: italic;
+  color: #C9A94E; margin-bottom: 24px; letter-spacing: 2px;
+}
+#lockInput {
+  width: 100%; padding: 12px 16px; border: 2px solid #444;
+  border-radius: 10px; background: #2a2a2a; color: #F5F0E8;
+  font-size: 16px; text-align: center; outline: none;
+  transition: border-color 0.2s;
+}
+#lockInput:focus { border-color: #C9A94E; }
+#lockSubmit {
+  width: 100%; margin-top: 16px; padding: 12px;
+  border: none; border-radius: 10px; background: #C9A94E;
+  color: #1a1a1a; font-size: 16px; font-weight: 700; cursor: pointer;
+  transition: background 0.2s;
+}
+#lockSubmit:active { background: #A8862E; }
+.lock-error { color: #C0392B; font-size: 13px; margin-top: 12px; min-height: 20px; }
+
 /* ========== NAVIGATION ========== */
 nav {
   background: #1a1a1a;
@@ -422,6 +453,16 @@ nav .sound-btn:hover { color: #F5F0E8; }
 </style>
 </head>
 <body>
+
+<!-- ========== PASSWORD LOCK ========== -->
+<div id="lockOverlay">
+  <div class="lock-card">
+    <div class="lock-brand">Cpaintz</div>
+    <input type="password" id="lockInput" placeholder="请输入密码" autocomplete="off">
+    <button id="lockSubmit">进入</button>
+    <div class="lock-error" id="lockError"></div>
+  </div>
+</div>
 
 <!-- ========== NAVIGATION ========== -->
 <nav>
@@ -1791,6 +1832,36 @@ document.getElementById('emotionSlider').addEventListener('input', e => {
 });
 
 // ============================================================
+//  PASSWORD LOCK
+// ============================================================
+
+const STORED_HASH = '56506d0550f72fff5f3811f3664969f5f678575093ee45b43488bb1e22cbe557';
+
+async function sha256(text) {
+  const buf = new TextEncoder().encode(text);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function tryUnlock() {
+  const input = document.getElementById('lockInput').value;
+  const hash = await sha256(input);
+  if (hash === STORED_HASH) {
+    localStorage.setItem('cpaintz_unlocked', '1');
+    document.getElementById('lockOverlay').classList.add('hidden');
+    init();
+  } else {
+    document.getElementById('lockError').textContent = '密码错误';
+    document.getElementById('lockInput').value = '';
+  }
+}
+
+document.getElementById('lockSubmit').addEventListener('click', tryUnlock);
+document.getElementById('lockInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') tryUnlock();
+});
+
+// ============================================================
 //  INIT
 // ============================================================
 
@@ -1804,7 +1875,10 @@ function init() {
   }
 }
 
-init();
+if (localStorage.getItem('cpaintz_unlocked')) {
+  init();
+  document.getElementById('lockOverlay').classList.add('hidden');
+}
 </script>
 </body>
 </html>
